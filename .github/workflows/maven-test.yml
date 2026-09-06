@@ -21,6 +21,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run tests
+      - name: cd into project directory
         run: cd backend
+
+      - name: Run tests
         run: mvn -B test
