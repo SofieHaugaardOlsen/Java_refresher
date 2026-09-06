@@ -22,4 +22,5 @@ jobs:
           cache: maven
 
       - name: Run tests
-        run: mvn -B test
+        run: cd backend
+          mvn -B test
