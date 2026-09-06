@@ -30,7 +30,7 @@ public class TaskResource {
     
     private Task findTask(int id){
         for (Task task : tasks) {
-            if (task.get_id() == id) {return task;}
+            if (task.getId() == id) {return task;}
         }
         return null; //UGLY :C
     }
@@ -43,12 +43,23 @@ public class TaskResource {
     //fetch all tasks
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public ArrayList<Task> getTasks() {
+    public ArrayList<Task> getAllTasks() {
         return tasks;
+    }
+
+    @GET
+    @Path("/{id}")
+
+    @Produces(MediaType.APPLICATION_JSON)   //Java object -> JSON (serialize)
+    public Response getTask(@PathParam ("id") int id) {
+        Task task = findTask(id);
+        if (task == null) {return Response.status(Response.Status.NOT_FOUND).build();}
+        else return Response.ok(task).build();
     }
 
     //issue a new task
     @POST 
+    @Consumes(MediaType.APPLICATION_JSON)   //JSON -> Java object (deserialize)
     @Produces(MediaType.APPLICATION_JSON)
     public Task createTask(Task task) {
         tasks.add(task);
@@ -70,14 +81,13 @@ public class TaskResource {
     }
 
     @DELETE 
-    @Path("/{id}/participants")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/{id}/participants/{uid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response removeParticipant(@PathParam("id") int id, User user) {
+    public Response removeParticipant(@PathParam("id") int id, @PathParam("uid") int uid) {
         Task task = findTask(id);
         if (task == null) {return Response.status(Response.Status.NOT_FOUND).build();}
         else {
-            task.removeUser(user);
+            task.removeUser(uid);
             return Response.ok(task).build();
         }      
     }

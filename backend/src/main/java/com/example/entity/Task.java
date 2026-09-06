@@ -1,6 +1,9 @@
 package com.example.entity;
 import java.util.ArrayList;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 enum Status {
     NOT_FULL,
     FULL
@@ -11,16 +14,22 @@ public class Task {
     private String title;
     private int starttime;
     private int endtime;
-    private ArrayList<Role> needed_roles;
+    private ArrayList<Role> neededRoles;
     private ArrayList<User> participants;
-    private User issuer;
+    private int issuer;
     private Status status;
 
-    public Task(int id , String title, int starttime, int endtime, ArrayList<Role> needed_roles, User issuer) {
+    @JsonCreator 
+    public Task(@JsonProperty("id") int id,
+                @JsonProperty("title") String title,
+                @JsonProperty("starttime") int starttime,
+                @JsonProperty("endtime") int endtime,
+                @JsonProperty("neededRoles") ArrayList<Role> needed_roles,
+                @JsonProperty("issuer") int issuer) {
         this.id = id;
         this.title = title;
         this.starttime = starttime;
-        this.needed_roles = needed_roles;
+        this.neededRoles = needed_roles;
         this.endtime = endtime;
         this.issuer = issuer;
         status = Status.NOT_FULL;
@@ -39,7 +48,7 @@ public class Task {
 
         else {
             Role role = user.get_role();
-            long number_needed = needed_roles.stream().filter(r -> r == role).count();
+            long number_needed = neededRoles.stream().filter(r -> r == role).count();
             long number_assigned = participants.stream().filter(u -> u.get_role() == role).count();
             return number_needed > number_assigned;
         }
@@ -50,15 +59,15 @@ public class Task {
         if (canAssign(user)) {
             participants.add(user);
             user.addTask(this);
-            if (participants.size() == needed_roles.size()) {status = Status.FULL;} 
+            if (participants.size() == neededRoles.size()) {status = Status.FULL;} 
         }
     }
 
     /*removes a user from the task if present*/
-    public void removeUser(User user) {
-        participants.remove(user);
-        user.removeTask(this);
-        if (participants.size() != needed_roles.size()) {status = Status.NOT_FULL;} 
+    public void removeUser(int uid) {
+        participants.stream().filter(u -> u.getUid() != uid);
+        //user.removeTask(this);
+        if (participants.size() != neededRoles.size()) {status = Status.NOT_FULL;} 
     }
 
     /////////////////////////
@@ -67,14 +76,14 @@ public class Task {
     /// 
     ///////////////////////
     /// 
-    public int get_id() { return id;}
-    public int get_starttime() { return starttime;}
-    public int get_endtime() { return endtime;}
-    public String get_title() { return title;}
-    public User get_issuer() { return issuer;}
-    public Status get_status() { return status;}
-    public ArrayList<Role> get_neededRoles() { return needed_roles;}
-    public ArrayList<User> get_participants() { return participants;}
+    public int getId() { return id;}
+    public int getStarttime() { return starttime;}
+    public int getEndtime() { return endtime;}
+    public String getTitle() { return title;}
+    public int getIssuer() { return issuer;}
+    public Status getStatus() { return status;}
+    public ArrayList<Role> getNeededRoles() { return neededRoles;}
+    public ArrayList<User> getParticipants() { return participants;}
   
 
 }
