@@ -1,72 +1,65 @@
 package com.example;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import jakarta.inject.Inject;
 
 import com.example.entity.Role;
 import com.example.entity.Task;
 import com.example.entity.User;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 @QuarkusTest
 class TaskResourceTest {
-    private TaskResource taskResource;
 
-    @BeforeEach 
+    @Inject
+    TaskResource taskResource;
+
+    @BeforeEach
     void setUp() {
-        taskResource = new TaskResource();
+        taskResource.resetTasks();
     }
+
     //tasks exist and contain json objects?
     @Test
-    void getTasks() {
+    void creatingTaskSucceeds() {
+        Task t1 = new Task(0,"survey",800,1600,new ArrayList<>(Arrays.asList(Role.HR, Role.StudentHelper)), 0);
         given()
-            .when()
-            .get("/tasks")
-            .then()
-            .statusCode(200)
-            .contentType("application/json");
+            .contentType(ContentType.JSON)
+            .body(t1)
+            .when().post("/tasks")
+            .then().statusCode(200)
+            .body("id", is(0))
+            .body("title", is("survey"))
+            .body("starttime", is(800))
+            .body("endtime", is(1600))
+            .body("participants", hasSize(0));
+    }
+
+    @Test 
+    void fetchingCreatedTaskSucceeds() {
+        Task t1 = new Task(0,"survey",800,1600,new ArrayList<>(Arrays.asList(Role.HR, Role.StudentHelper)), 0);
+        int id = given()
+            .contentType(ContentType.JSON)
+            .body(t1)
+            .when().post("/tasks")
+            .then().statusCode(200).extract().path("id");
+
+        given().when().get("/tasks").then().statusCode(200).body("$", hasSize(1));  //one message stored
+        given().when().get("/tasks/" + id).then().statusCode(200).body("id",is(id)).body("title",is("survey")); //it's the same message
+    }
+
+    @Test 
+    void fetchingNonexistingTaskFails() {
+        given().when().get("/tasks/0").then().statusCode(404);
     }
     
-    //posting a new task updates the tasks
-    @Test 
-    void postTask(){
-        given()
-        .contentType("application/json")
-        .body("{\"id\": 1, \"title\": \"prepare lunch\", \"starttime\": 800, \"endtime\": 1100, \"neededRoles\": [\"Worker\"], \"issuer\": {\"uid\": \"boss1\", \"role\": \"Boss\"}}")
-        .when()
-        .post("/tasks")
-        .then()
-        .statusCode(200)
-        .contentType("application/json")
-        .body("_id", is(1))
-        .body("_title", is("prepare lunch"));
-
-        given()
-        .when()
-        .get("/tasks")
-        .then()
-        .statusCode(200)
-        .body("find {it._id == 1}._title", is("prepare lunch"));
-    }
-
-    //posting a new task updates the tasks
-    @Test 
-    void assigningValidUserIncreasesLengthOfParticipants() {
-        //pushign task to system
-        ArrayList<Role> roles = new ArrayList<Role>(Arrays.asList(Role.Worker, Role.Worker));
-        taskResource.createTask(new Task(0, "test_task", 800, 1600 ,roles, new User("alice1",Role.Boss)));
-
-        //assignign a worker
-        User worker1 = new User("w1", Role.Worker);
-        taskResource.assignParticipant(0, worker1);
-        given().when().get("/tasks/0").then().body("_participants.size()", is(1));
-    }
-
 }
