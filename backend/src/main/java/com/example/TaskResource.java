@@ -22,13 +22,22 @@ import jakarta.ws.rs.core.Response;
 @Path("/tasks")
 public class TaskResource {
 
-    private ArrayList<Task> tasks = new ArrayList<>();  //dummy instance mem
+    private ArrayList<Task> tasks;
 
+    public TaskResource() {
+        tasks = new ArrayList<>();  //dummy instance mem
+    }
+    
     private Task findTask(int id){
         for (Task task : tasks) {
             if (task.get_id() == id) {return task;}
         }
         return null; //UGLY :C
+    }
+
+    //helper for testing
+    void resetTasks() {
+        tasks.clear();
     }
 
     //fetch all tasks
