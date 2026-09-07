@@ -40,6 +40,7 @@ public class UserService {
 
     public void resetUsers() {
         allUsers.clear();
+        nextId = 0;
     }
 
 }

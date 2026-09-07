@@ -38,7 +38,7 @@ public class Task {
     }
 
     public void removeParticipant(int uid) {
-        participants.remove(uid);
+        participants.remove(Integer.valueOf(uid));  //holy shit java why u like this??
         //may not remove if uid not present
         if(participants.size() != neededRoles.size()) {isFull = false;}
     }
