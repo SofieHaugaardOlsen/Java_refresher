@@ -1,80 +1,59 @@
 package com.example.entity;
 import java.util.ArrayList;
 
-enum Status {
-    NOT_FULL,
-    FULL
-}
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Task {
     private int id;
     private String title;
     private int starttime;
     private int endtime;
-    private ArrayList<Role> needed_roles;
-    private ArrayList<User> participants;
-    private User issuer;
-    private Status status;
+    private ArrayList<Role> neededRoles;
+    private ArrayList<Integer> participants;
+    private int issuer;
+    private boolean isFull;
 
-    public Task(int id , String title, int starttime, int endtime, ArrayList<Role> needed_roles, User issuer) {
+    @JsonCreator 
+    public Task(@JsonProperty("id") int id,
+                @JsonProperty("title") String title,
+                @JsonProperty("starttime") int starttime,
+                @JsonProperty("endtime") int endtime,
+                @JsonProperty("neededRoles") ArrayList<Role> needed_roles,
+                @JsonProperty("issuer") int issuer) {
         this.id = id;
         this.title = title;
         this.starttime = starttime;
-        this.needed_roles = needed_roles;
+        this.neededRoles = needed_roles;
         this.endtime = endtime;
         this.issuer = issuer;
-        status = Status.NOT_FULL;
+        isFull = false;
 
         participants = new ArrayList<>();
     }
 
-    ///////////////////////////////////////////////////////////////////////////////
-    /// 
-    /// Functionality for adding and removing participants from tasks
-    /// 
-    ///////////////////////////////////////////////////////////////////////////////
-    public boolean canAssign(User user) {
-        if (status == Status.FULL) { return false;} //if task is full no more users can be assigned
-        if (participants.contains(user)) { return false;} //if user already assigned, cannot be assigned again
-
-        else {
-            Role role = user.get_role();
-            long number_needed = needed_roles.stream().filter(r -> r == role).count();
-            long number_assigned = participants.stream().filter(u -> u.get_role() == role).count();
-            return number_needed > number_assigned;
-        }
+    public void addParticipant(int uid) {
+        participants.add(uid);
+        if(participants.size() == neededRoles.size()) {isFull = true;}
     }
 
-    /*assigns a user to the task if they are needed*/
-    public void Assign(User user) {
-        if (canAssign(user)) {
-            participants.add(user);
-            user.addTask(this);
-            if (participants.size() == needed_roles.size()) {status = Status.FULL;} 
-        }
+    public void removeParticipant(int uid) {
+        participants.remove(Integer.valueOf(uid));  //holy shit java why u like this??
+        //may not remove if uid not present
+        if(participants.size() != neededRoles.size()) {isFull = false;}
     }
 
-    /*removes a user from the task if present*/
-    public void removeUser(User user) {
-        participants.remove(user);
-        user.removeTask(this);
-        if (participants.size() != needed_roles.size()) {status = Status.NOT_FULL;} 
-    }
-
-    /////////////////////////
-    /// 
-    /// Getters and setters
-    /// 
     ///////////////////////
-    /// 
-    public int get_id() { return id;}
-    public int get_starttime() { return starttime;}
-    public int get_endtime() { return endtime;}
-    public String get_title() { return title;}
-    public User get_issuer() { return issuer;}
-    public Status get_status() { return status;}
-    public ArrayList<Role> get_neededRoles() { return needed_roles;}
-    public ArrayList<User> get_participants() { return participants;}
+    /// Getters 
+    ///////////////////////
+    public int getId() { return id;}
+    public int getStarttime() { return starttime;}
+    public int getEndtime() { return endtime;}
+    public String getTitle() { return title;}
+    public int getIssuer() { return issuer;}
+    public boolean isFull() {return isFull;}
+    public ArrayList<Role> getNeededRoles() { return neededRoles;}
+    public ArrayList<Integer> getParticipants() { return participants;}
   
 
 }
