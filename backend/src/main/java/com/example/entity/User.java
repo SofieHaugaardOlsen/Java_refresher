@@ -4,11 +4,13 @@ import java.util.ArrayList;
 public class User {
     /*Object representing users of the system */
     private int uid;
+    private String name;
     private Role role;
     private ArrayList<Task> assignedTasks; //should appear on their timetable view
 
-    public User(int uid, Role role) {
+    public User(int uid, String name ,Role role) {
         this.uid = uid;
+        this.name = name;
         this.role = role;
         assignedTasks = new ArrayList<Task>();
     }
